@@ -1,0 +1,174 @@
+
+
+Modifications to Compute the Y0 at each optimiser iteration
+
+* Function Generated: 
+	- AMIGO_transform_Y0.m
+
+* Modified\Introduced in:
+	- AMIGO_PEcost: After line 100
+	- AMIGO_PE: After line 246
+
+--------------------------------------------------------------------------------
+
+Modifications to Perform OED with discretised input values
+
+****************************************** ROUNDING ******************************************
+* Function:
+	- AMIGO2_2019a\Kernel\AMIGO_transform_oed.m
+	
+* Modification:
+	- privstruct.oed = round(privstruct.oed/5); --> Add in Line 28
+
+
+****************************************** MINLP ******************************************
+* Function: 
+	- AMIGO_public_defaults_MINLP.m
+* Modification:
+	- inputs_def.minlpsol.minlpsolver='nomad';    --> Added after line 92
+
+
+
+* Function:
+	- AMIGO_private_defaults_MINLP.m
+* Modification: 
+	- % OPTIMIZATION RELATED DATA FOR MINLP		--> Added after line 247
+	  % Added by David
+	  inputs_def.minlpsol.global_solver=[];           % For hybrids
+	  inputs_def.minlpsol.nlpsolver='nomad';              % NLP solver
+	  % these should be defined for each Opt solver:
+	  %inputs_def.nlpsol.maxeval= Inf;                %Maximum number of function evaluations (Default 1000)
+	  %inputs_def.nlpsol.maxtime= 60;                 %Maximum CPU time in seconds (Default 60)
+	  inputs_def.minlpsol.iterprint=1;                  %Print each iteration on screen: 0-Deactivated 1-Activated (Default 1)
+
+	  %Local options
+	  inputs_def.minlpsol.cvodes_gradient=1;        % ???
+	  inputs_def.minlpsol.mkl_gradient=0;           % ???
+	  inputs_def.minlpsol.mkl_tol=1e-3;             % relative tolerance for MKLJac
+    
+	  inputs_def.minlpsol.nomad = nomad_options_defaults;       % call eSS default options
+
+	  inputs_def.minlpsol.reopt='off';
+	  inputs_def.minlpsol.reopt_local_solver=[]; 
+	  inputs_def.minlpsol.n_reopts=0; 
+	  inputs_def.minlpsol.regularization = regularization_options_defaults; % call regularization options.
+
+
+
+* Function: 
+	- nomad_options_defaults.m	--> Based on ess_options_defaults.m
+* Modification: 
+	- Delete all stuff from local solver, call maxeval as maxfeval, and include maxiter.
+	- Include opts.maxcachemem = 2000;, opts.history_file = 'ObjectPerIter.csv';, opts.xtype=[];
+
+
+* Function: 
+	- AMIGO_Prep_MINLP.m
+* Modifications:
+	- [inputs_def]= AMIGO_private_defaults_MINLP;	--> Line 48
+	- [inputs_def]= AMIGO_public_defaults_MINLP(inputs_def);	--> Line 51
+	- [inputs,results]=AMIGO_check_model_MINLP(input_file,inputs_def);%,results_def	--> Line 55
+
+
+* Function: 
+	- AMIGO_check_model_MINLP.mat
+* Modification: 
+	- inputs.minlpsol=inputs_def.minlpsol;	--> Line 38
+
+
+* Function: 
+	- AMIGO_OED_MINLP.m
+* Modifications: 
+	- [inputs_def]= AMIGO_private_defaults_MINLP;	--> Line 92
+	- [inputs_def]= AMIGO_public_defaults_MINLP(inputs_def);	--> Line 94
+	- [inputs,results]=AMIGO_check_model_MINLP(input_file,inputs_def); 	--> Line 112
+	- [results,privstruct]=AMIGO_call_OPTsolver_MINLP('OED',inputs.minlpsol.minlpsolver,inputs.OEDsol.voed_guess,inputs.OEDsol.voed_min,inputs.OEDsol.voed_max,inputs,results,privstruct);	--> Line 251
+
+STOPED IN LINE 253
+
+
+* Function:
+	- AMIGO_call_OPTsolver_MINLP.m
+* Modifications:
+	- change nlpsolver variable/input to minlpsolver
+	- Write nomad case with the same structure as for the other solvers in the script (deleted them after)
+	- 
+
+* Function:
+	- AMIGO_report_OPTsolver.m
+* Modifications:
+	- Write nomad case with the same structure as for the other solvers in the script (deleted them after)
+ 
+
+* Function:
+	- AMIGO_OEDcost_MINLP.m
+* Modifications:
+	- function [fx]= AMIGO_OEDcost_MINLP (x)
+	  global input_par 
+
+	  [fx]= AMIGO_OEDcost(x,input_par{:});
+	  return
+
+
+* Function:
+	- nomad_kernel.m (modified based on ess_kernel)
+* Modifications: 
+	- adapt eSS script for nomad
+ 
+
+* Function:
+	- ssm_defaults_MINLP.m
+* Modifications:
+	- default.maxfeval                   =       1000;            --> Line 8
+	- default.maxiter                   =       1000;	--> After Line 9
+	- default.maxcachemem = 2000;	--> Line 18
+	- default.history_file = 'ObjectPerIter.csv';	--> Line 19
+	- default.xtype=[];	--> Line 20
+
+* Function: 
+	- ssm_evalfc_MINLP.m
+* Modifications:
+	- [value,nlc]=feval(fobj,x);	--> Line 30
+	- value=feval(fobj,x);	--> Line 44
+
+
+* Function:
+	- AMIGO_post_report_OED_MINLP.m
+* Modifications
+	- fprintf(fid,'\t   \n\n>>>> Best objective function: %s = %e \n',inputs.OEDsol.OEDcost_type,results.minlpsol.fbest);	--> Line 52
+	- fprintf(1,'\t   \n\n>>>> Best objective function: %s = %e \n',inputs.OEDsol.OEDcost_type,results.minlpsol.fbest);	--> Line 53
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
